@@ -4,7 +4,7 @@ extern crate clap;
 use std::path::Path;
 
 use clap::Clap;
-use futures::stream::StreamExt;
+
 
 use exemplify_lib::layers::domain::parser_settings::ParserSettings;
 use exemplify_lib::layers::domain::read_examples::read_examples;
@@ -20,7 +20,7 @@ mod layers;
 async fn main() {
     let params: ExemplifyCliParams = ExemplifyCliParams::parse();
 
-    let mut files = discover_fs_files(params.source_directory.clone().into(), &params.extensions).unwrap();
+    let files = discover_fs_files(params.source_directory.clone().into(), &params.extensions).unwrap();
 
     let reader_factory = reader_stream(
         Box::new(FileReaderFactory{}),

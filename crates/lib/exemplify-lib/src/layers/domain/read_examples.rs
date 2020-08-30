@@ -35,7 +35,7 @@ pub async fn read_examples<Reader: Read>(mut reader_factory: Pin<Box<dyn Stream<
     finalize_examples(chunk_cache)
 }
 
-fn finalize_examples(mut chunk_cache: HashMap<String, Vec<Chunk>>) -> Result<Vec<Example>, String> {
+fn finalize_examples(chunk_cache: HashMap<String, Vec<Chunk>>) -> Result<Vec<Example>, String> {
     let mut examples = Vec::new();
 
     for v in &chunk_cache {
@@ -115,7 +115,7 @@ impl Example {
 
 #[cfg(test)]
 mod test {
-    use std::rc::Rc;
+    
 
     use stringreader::StringReader;
 

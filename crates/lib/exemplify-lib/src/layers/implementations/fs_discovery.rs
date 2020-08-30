@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::pin::Pin;
 
-use futures::{Stream, StreamExt};
+use futures::{Stream};
 
 pub fn discover_fs_files(root_folder: String, file_patterns: &Vec<String>) -> Result<Pin<Box<dyn Stream<Item=Result<String, String>>>>, String> {
     let path = Path::new(root_folder.as_str());
