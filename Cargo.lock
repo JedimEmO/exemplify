@@ -76,6 +76,8 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "exemplify-lib",
+ "futures",
+ "tokio",
 ]
 
 [[package]]

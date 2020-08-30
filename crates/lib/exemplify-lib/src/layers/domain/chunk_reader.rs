@@ -40,6 +40,14 @@ impl<Reader: Read> Stream for ChunkReader<Reader> {
             }
         }
 
+        if self.current_chunk.is_some() {
+            let last_line = self.parser_settings.end_token.clone();
+
+            if let Some(result) = self.process_line(&last_line)? {
+                completed_chunks.push(result);
+            }
+        }
+
         if completed_chunks.len() > 0 {
             Poll::Ready(Some(Ok(completed_chunks)))
         } else if read_count == 0 {
