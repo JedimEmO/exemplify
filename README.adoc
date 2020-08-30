@@ -1,0 +1,29 @@
+= Exemplify - example code extractor for authors
+
+== Usage
+
+First, annotate the example in your source file.
+You can combine multiple blocks, they will appear ordered by the optional part parameter.
+
+
+[source,typescript]
+----
+//##examplify-start##{name="name of the example" part=1}
+export class Foobar {
+    doSomething() {}
+}
+//##examplify-end##
+
+function doNotShowThis() {
+    // This will not be part of the example output file
+}
+
+//##examplify-start##{name="name of the example" part=2}
+new Foobar();
+//##examplify-end##
+----
+
+[source,shell]
+----
+exemplify -d /path/to/example/code/root -o /path/to/output/folder --format adoc
+----

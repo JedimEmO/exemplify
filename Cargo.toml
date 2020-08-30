@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "crates/lib/exemplify-lib",
+    "crates/cli"
+]
