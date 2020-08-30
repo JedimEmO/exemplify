@@ -1,5 +1,10 @@
 = Exemplify - example code extractor for authors
 
+== Purpose
+
+I find it easier to keep example code green and alive if it is part of a compilable code base.
+This tool lets you annotate sections of your source code, and have generated includeable sample files with the highlighted parts.
+
 == Usage
 
 First, annotate the example in your source file.
@@ -26,4 +31,15 @@ new Foobar();
 [source,shell]
 ----
 exemplify -d /path/to/example/code/root -o /path/to/output/folder --format adoc
+----
+
+This should create the file *name of the example.adoc* in your output folder, with the following content:
+
+[source,typescript]
+----
+export class Foobar {
+    doSomething() {}
+}
+// ...
+new Foobar();
 ----

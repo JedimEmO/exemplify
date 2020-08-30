@@ -1,13 +1,13 @@
+use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::io::Read;
 
-use futures::{StreamExt};
+use futures::StreamExt;
 
 use crate::layers::domain::chunk::Chunk;
 use crate::layers::domain::chunk_reader::ChunkReader;
 use crate::layers::domain::parser_settings::ParserSettings;
 use crate::layers::domain::reader_factory::ReaderFactory;
-use std::cmp::Ordering;
 
 pub struct Example {
     pub name: String,
@@ -31,7 +31,6 @@ pub struct ExampleService<Reader: Read> {
     chunk_cache: HashMap<String, Vec<Chunk>>,
 }
 
-
 impl<Reader: Read> ExampleService<Reader> {
     pub fn new(reader_queue: Vec<String>, reader_factory: Box<dyn ReaderFactory<Reader>>, parser_settings: ParserSettings) -> ExampleService<Reader> {
         ExampleService {
@@ -49,6 +48,10 @@ impl<Reader: Read> ExampleService<Reader> {
             self.exhaust_current_reader().await?;
         }
 
+        self.finalize_examples()
+    }
+
+    fn finalize_examples(&mut self) -> Result<Vec<Example>, String> {
         let mut examples = Vec::new();
 
         for v in &self.chunk_cache {
@@ -132,6 +135,12 @@ impl<Reader: Read> ExampleService<Reader> {
     }
 }
 
+impl Example {
+    pub fn lines(&self) -> &Vec<String> {
+        &self.content
+    }
+}
+
 #[cfg(test)]
 mod test {
     use stringreader::StringReader;
@@ -161,7 +170,7 @@ mod test {
     async fn test_example_producer() {
         let parser_settings = ParserSettings { start_token: "##exemplify-start##".into(), end_token: "##exemplify-end##".into() };
 
-        let mut producer = ExampleService::<StringReader>::new(
+        let producer = ExampleService::<StringReader>::new(
             vec!["a".into(), "b".into(), "c".into()],
             Box::new(StringReaderFactory {}),
             parser_settings.clone(),
@@ -169,7 +178,7 @@ mod test {
 
         let _result = producer.read_examples().await.unwrap();
 
-        let mut producer = ExampleService::<StringReader>::new(
+        let producer = ExampleService::<StringReader>::new(
             vec!["d".into()],
             Box::new(StringReaderFactory {}),
             parser_settings.clone(),
@@ -179,7 +188,7 @@ mod test {
 
         assert_eq!(result.is_err(), true);
 
-        let mut producer = ExampleService::<StringReader>::new(
+        let producer = ExampleService::<StringReader>::new(
             vec!["e".into()],
             Box::new(StringReaderFactory {}),
             parser_settings.clone(),

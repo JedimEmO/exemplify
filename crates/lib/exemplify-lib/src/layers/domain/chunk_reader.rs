@@ -134,8 +134,6 @@ impl<Reader: Read> ChunkReader<Reader> {
             return Err("Missing name".into());
         }
 
-        println!("name: {}", name);
-
         Ok(ChunkParams {
             part,
             name,
