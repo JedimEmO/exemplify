@@ -1,13 +1,13 @@
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::io::Read;
+use std::pin::Pin;
 
-use futures::StreamExt;
+use futures::{Stream, StreamExt};
 
 use crate::layers::domain::chunk::Chunk;
 use crate::layers::domain::chunk_reader::ChunkReader;
 use crate::layers::domain::parser_settings::ParserSettings;
-use crate::layers::domain::reader_factory::ReaderFactory;
 
 pub struct Example {
     pub name: String,
@@ -23,117 +23,89 @@ impl Example {
     }
 }
 
-pub struct ExampleService<Reader: Read> {
-    reader_factory: Box<dyn ReaderFactory<Reader>>,
-    reader_queue: Vec<String>,
-    active_reader: Option<ChunkReader<Reader>>,
-    parser_settings: ParserSettings,
-    chunk_cache: HashMap<String, Vec<Chunk>>,
+pub async fn read_examples<Reader: Read>(mut reader_factory: Pin<Box<dyn Stream<Item=Result<Reader, String>>>>, parser_settings: ParserSettings) -> Result<Vec<Example>, String> {
+    let mut chunk_cache: HashMap<String, Vec<Chunk>> = Default::default();
+
+    while let Some(reader) = reader_factory.next().await {
+        let chunk_reader = ChunkReader::new(reader?, parser_settings.clone());
+
+        chunk_cache = exhaust_reader(chunk_reader, chunk_cache).await?;
+    }
+
+    finalize_examples(chunk_cache)
 }
 
-impl<Reader: Read> ExampleService<Reader> {
-    pub fn new(reader_queue: Vec<String>, reader_factory: Box<dyn ReaderFactory<Reader>>, parser_settings: ParserSettings) -> ExampleService<Reader> {
-        ExampleService {
-            reader_queue,
-            reader_factory,
-            parser_settings,
-            active_reader: Default::default(),
-            chunk_cache: Default::default(),
-        }
-    }
+fn finalize_examples(mut chunk_cache: HashMap<String, Vec<Chunk>>) -> Result<Vec<Example>, String> {
+    let mut examples = Vec::new();
 
-    pub async fn read_examples(mut self) -> Result<Vec<Example>, String> {
-        while self.reader_queue.len() > 0 {
-            self.process_queue();
-            self.exhaust_current_reader().await?;
-        }
+    for v in &chunk_cache {
+        verify_example(&v.1)?;
 
-        self.finalize_examples()
-    }
+        let mut chunks: Vec<Chunk> = v.1[..].to_vec();
 
-    fn finalize_examples(&mut self) -> Result<Vec<Example>, String> {
-        let mut examples = Vec::new();
-
-        for v in &self.chunk_cache {
-            self.verify_example(&v.1)?;
-
-            let mut chunks: Vec<Chunk> = v.1[..].to_vec();
-
-            chunks.sort_by(|lhs, rhs| {
-                if let Some(r) = rhs.part_number {
-                    if let Some(l) = lhs.part_number {
-                        if l < r {
-                            return Ordering::Less;
-                        } else {
-                            return Ordering::Greater;
-                        }
+        chunks.sort_by(|lhs, rhs| {
+            if let Some(r) = rhs.part_number {
+                if let Some(l) = lhs.part_number {
+                    if l < r {
+                        return Ordering::Less;
+                    } else {
+                        return Ordering::Greater;
                     }
                 }
-
-                return Ordering::Equal;
-            });
-
-            let content = chunks.into_iter().flat_map(|v| {
-                v.content
-            }).collect();
-
-            examples.push(Example::new(v.0.clone(), content))
-        }
-
-        Ok(examples)
-    }
-
-    fn process_queue(&mut self) {
-        if let Some(next) = self.reader_queue.pop() {
-            let reader = self.reader_factory.make_reader(next);
-
-            self.active_reader = Some(ChunkReader::new(reader, self.parser_settings.clone()));
-        } else {
-            self.active_reader = None;
-        }
-    }
-
-    async fn exhaust_current_reader(&mut self) -> Result<(), String> {
-        if let Some(active_reader) = &mut self.active_reader {
-            while let Some(chunks) = active_reader.next().await {
-                let chunks = chunks?;
-
-                for chunk in chunks {
-                    let chunk_name = chunk.example_name.clone();
-
-                    let cache = match self.chunk_cache.remove(chunk.example_name.as_str()) {
-                        Some(mut cache) => {
-                            cache.push(chunk);
-                            cache
-                        }
-                        _ => vec![chunk]
-                    };
-
-                    self.chunk_cache.insert(chunk_name, cache);
-                }
             }
-        }
 
-        Ok(())
+            return Ordering::Equal;
+        });
+
+        let content = chunks.into_iter().flat_map(|v| {
+            v.content
+        }).collect();
+
+        examples.push(Example::new(v.0.clone(), content))
     }
 
-    fn verify_example(&self, chunks: &Vec<Chunk>) -> Result<(), String> {
-        let mut part_set = HashSet::new();
+    Ok(examples)
+}
+
+async fn exhaust_reader<Reader: Read>(mut chunk_reader: ChunkReader<Reader>, mut chunk_cache: HashMap<String, Vec<Chunk>>) -> Result<HashMap<String, Vec<Chunk>>, String> {
+    while let Some(chunks) = chunk_reader.next().await {
+        let chunks = chunks?;
 
         for chunk in chunks {
-            if let Some(part) = chunk.part_number {
-                if part_set.contains(&part) {
-                    return Err(format!("Duplicate part {} ", part).into());
-                }
-                part_set.insert(part);
-            } else if chunks.len() > 0 {
-                return Err("You must provide a part number for chunk in examples with more than one chunk".into());
-            }
-        }
+            let chunk_name = chunk.example_name.clone();
 
-        Ok(())
+            let cache = match chunk_cache.remove(chunk.example_name.as_str()) {
+                Some(mut cache) => {
+                    cache.push(chunk);
+                    cache
+                }
+                _ => vec![chunk]
+            };
+
+            chunk_cache.insert(chunk_name, cache);
+        }
     }
+
+    Ok(chunk_cache)
 }
+
+fn verify_example(chunks: &Vec<Chunk>) -> Result<(), String> {
+    let mut part_set = HashSet::new();
+
+    for chunk in chunks {
+        if let Some(part) = chunk.part_number {
+            if part_set.contains(&part) {
+                return Err(format!("Duplicate part {} ", part).into());
+            }
+            part_set.insert(part);
+        } else if chunks.len() > 0 {
+            return Err("You must provide a part number for chunk in examples with more than one chunk".into());
+        }
+    }
+
+    Ok(())
+}
+
 
 impl Example {
     pub fn lines(&self) -> &Vec<String> {
@@ -143,16 +115,19 @@ impl Example {
 
 #[cfg(test)]
 mod test {
+    use std::rc::Rc;
+
     use stringreader::StringReader;
 
     use crate::layers::domain::reader_factory::ReaderFactory;
+    use crate::layers::implementations::file_reader_factory::reader_stream;
 
     use super::*;
 
     struct StringReaderFactory {}
 
     impl ReaderFactory<StringReader<'static>> for StringReaderFactory {
-        fn make_reader(&self, name: String) -> StringReader<'static> {
+        fn make_reader(&self, name: String) -> Result<StringReader<'static>, String> {
             let content = match name.as_str() {
                 "a" => CONTENT_A,
                 "b" => CONTENT_B,
@@ -162,7 +137,7 @@ mod test {
                 _ => panic!()
             };
 
-            StringReader::new(content)
+            Ok(StringReader::new(content))
         }
     }
 
@@ -170,31 +145,33 @@ mod test {
     async fn test_example_producer() {
         let parser_settings = ParserSettings { start_token: "##exemplify-start##".into(), end_token: "##exemplify-end##".into() };
 
-        let producer = ExampleService::<StringReader>::new(
-            vec!["a".into(), "b".into(), "c".into()],
-            Box::new(StringReaderFactory {}),
-            parser_settings.clone(),
-        );
+        let file_name_stream = Box::pin(futures::stream::iter(
+            vec![
+                Ok("a".into()),
+                Ok("b".into()),
+                Ok("c".into())
+            ].into_iter()));
 
-        let _result = producer.read_examples().await.unwrap();
+        let file_reader_factory = reader_stream(Box::new(StringReaderFactory {}), file_name_stream);
+        let _result = read_examples(file_reader_factory, parser_settings.clone()).await.unwrap();
 
-        let producer = ExampleService::<StringReader>::new(
-            vec!["d".into()],
-            Box::new(StringReaderFactory {}),
-            parser_settings.clone(),
-        );
+        let file_name_stream = Box::pin(futures::stream::iter(
+            vec![
+                Ok("d".into())
+            ].into_iter()));
 
-        let result = producer.read_examples().await;
+        let file_reader_factory = reader_stream(Box::new(StringReaderFactory {}), file_name_stream);
+        let result = read_examples(file_reader_factory, parser_settings.clone()).await;
 
         assert_eq!(result.is_err(), true);
 
-        let producer = ExampleService::<StringReader>::new(
-            vec!["e".into()],
-            Box::new(StringReaderFactory {}),
-            parser_settings.clone(),
-        );
+        let file_name_stream = Box::pin(futures::stream::iter(
+            vec![
+                Ok("e".into())
+            ].into_iter()));
 
-        let result = producer.read_examples().await;
+        let file_reader_factory = reader_stream(Box::new(StringReaderFactory {}), file_name_stream);
+        let result = read_examples(file_reader_factory, parser_settings.clone()).await;
 
         assert_eq!(result.is_err(), true);
     }
