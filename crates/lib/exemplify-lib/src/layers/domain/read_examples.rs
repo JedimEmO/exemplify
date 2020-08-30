@@ -120,9 +120,9 @@ mod test {
     use stringreader::StringReader;
 
     use crate::layers::domain::reader_factory::ReaderFactory;
-    use crate::layers::implementations::file_reader_factory::reader_stream;
 
     use super::*;
+    use crate::layers::domain::reader_stream::reader_stream;
 
     struct StringReaderFactory {}
 
