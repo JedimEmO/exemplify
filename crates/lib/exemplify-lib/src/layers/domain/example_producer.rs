@@ -46,7 +46,7 @@ impl<Reader: Read> ExampleService<Reader> {
     pub async fn read_examples(mut self) -> Result<Vec<Example>, String> {
         while self.reader_queue.len() > 0 {
             self.process_queue();
-            self.exhaust_current_queue().await?;
+            self.exhaust_current_reader().await?;
         }
 
         let mut examples = Vec::new();
@@ -90,7 +90,7 @@ impl<Reader: Read> ExampleService<Reader> {
         }
     }
 
-    async fn exhaust_current_queue(&mut self) -> Result<(), String> {
+    async fn exhaust_current_reader(&mut self) -> Result<(), String> {
         if let Some(active_reader) = &mut self.active_reader {
             while let Some(chunks) = active_reader.next().await {
                 let chunks = chunks?;
