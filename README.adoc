@@ -13,24 +13,24 @@ You can combine multiple blocks, they will appear ordered by the optional part p
 
 [source,typescript]
 ----
-//##examplify-start##{name="name of the example" part=1}
+//##exemplify-start##{name="name of the example" part=1}
 export class Foobar {
     doSomething() {}
 }
-//##examplify-end##
+//##exemplify-end##
 
 function doNotShowThis() {
     // This will not be part of the example output file
 }
 
-//##examplify-start##{name="name of the example" part=2}
+//##exemplify-start##{name="name of the example" part=2}
 new Foobar();
-//##examplify-end##
+//##exemplify-end##
 ----
 
 [source,shell]
 ----
-exemplify -d /path/to/example/code/root -o /path/to/output/folder --format adoc
+exemplify -s /path/to/example/code/root -o /path/to/output/folder -e "ts"
 ----
 
 This should create the file *name of the example.adoc* in your output folder, with the following content:
@@ -40,6 +40,5 @@ This should create the file *name of the example.adoc* in your output folder, wi
 export class Foobar {
     doSomething() {}
 }
-// ...
 new Foobar();
 ----
