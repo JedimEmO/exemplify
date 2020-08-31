@@ -13,7 +13,8 @@ You can combine multiple blocks, they will appear ordered by the optional part p
 
 [source,typescript]
 ----
-//##exemplify-start##{name="name of the example" part=1}
+// This chunk will be indented by 4 spaces relative to the other chunks in this example
+//##exemplify-start##{name="name of the example" part=1 indentation=4}
 export class Foobar {
     doSomething() {}
 }
