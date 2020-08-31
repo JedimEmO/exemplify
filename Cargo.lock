@@ -72,10 +72,10 @@ dependencies = [
 
 [[package]]
 name = "exemplify"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "clap",
- "exemplify-lib",
+ "exemplify-lib 0.1.0",
  "futures",
  "tokio",
 ]
@@ -83,6 +83,17 @@ dependencies = [
 [[package]]
 name = "exemplify-lib"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a76c4a0c7704c7ef88306e80ca94517e11e49c6a597750cd5984d195123e8dff"
+dependencies = [
+ "futures",
+ "lazy_static",
+ "regex",
+]
+
+[[package]]
+name = "exemplify-lib"
+version = "0.1.1"
 dependencies = [
  "futures",
  "lazy_static",
