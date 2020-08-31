@@ -1,12 +1,12 @@
 [package]
 name = "exemplify"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Mathias Myrland <jedimemo@gmail.com>"]
 edition = "2018"
 description = "Tool for generating code examples from annotated source file directories"
 homepage = "https://github.com/JedimEmO/exemplify"
 repository = "https://github.com/JedimEmO/exemplify"
-license-file = "../../LICENSE"
+license = "MIT"
 readme = "../../README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -14,6 +14,6 @@ readme = "../../README.md"
 [dependencies]
 clap = { version = "3.0.0-beta.1", features = ["derive"]}
 # Remove path from dependency before publishing
-exemplify-lib = { version="0.1.1" }
+exemplify-lib = { version="0.1.1", path = "../lib/exemplify-lib"}
 futures = "0.3.5"
 tokio = { version = "0.2.22", features = ["macros"]}
