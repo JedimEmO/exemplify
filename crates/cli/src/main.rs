@@ -33,7 +33,7 @@ async fn main() {
     for example in examples {
         let content = example.lines().join("\n");
 
-        if let Some(out_dir) = &params.output_directory {
+        if let Some(out_dir) = &params.output_folder {
             let output_path = format!("{}/{}.adoc", out_dir, example.name);
             let output_path = Path::new(&output_path);
             std::fs::create_dir_all(output_path.parent().unwrap()).unwrap();
