@@ -1,9 +1,9 @@
 import { Something } from "some-module";
 
-//##exemplify-start##{name = "multi-file-example" part=2}
-function nestedExample() {
+//##exemplify-start##{name = "multi-file-example" part=1 indentation=0}
+    function nestedExample() {
 
-}
+    }
 //##exemplify-end##
 
 //##exemplify-start##{name="foo/bar" part=1}
