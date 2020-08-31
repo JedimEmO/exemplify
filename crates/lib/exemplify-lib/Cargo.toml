@@ -1,13 +1,13 @@
 [package]
 name = "exemplify-lib"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Mathias Myrland <jedimemo@gmail.com>"]
 edition = "2018"
 description = "Tool for generating code examples from annotated source file directories"
 homepage = "https://github.com/JedimEmO/exemplify"
 repository = "https://github.com/JedimEmO/exemplify"
 license-file = "../../../LICENSE"
-readme = "../../../README.adoc"
+readme = "../../../README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
