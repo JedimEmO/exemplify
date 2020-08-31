@@ -38,8 +38,8 @@ This should create the file *name of the example.adoc* in your output folder, wi
 
 [source,typescript]
 ----
-export class Foobar {
-    doSomething() {}
-}
+    export class Foobar {
+        doSomething() {}
+    }
 new Foobar();
 ----
