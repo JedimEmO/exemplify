@@ -6,7 +6,9 @@ pub struct Chunk {
     pub part_number: Option<u32>,
     pub indentation: Option<u32>,
     pub source_name: String,
-    pub start_line: usize
+    pub start_line: usize,
+    pub title: Option<String>,
+    pub language: Option<String>
 }
 
 #[derive(Default, Clone)]

@@ -5,26 +5,17 @@ use std::pin::Pin;
 
 use futures::{Stream, StreamExt};
 
-use crate::layers::domain::chunk::Chunk;
+use crate::layers::domain::entities::chunk::Chunk;
 use crate::layers::domain::chunk_reader::ChunkReader;
 use crate::layers::domain::parser_settings::ParserSettings;
 use crate::layers::domain::reader_factory::ReaderContext;
+use crate::layers::domain::entities::example::Example;
+use crate::layers::domain::entities::Printable;
 
-pub struct Example {
-    pub name: String,
-    content: Vec<String>,
-}
-
-impl Example {
-    fn new(name: String, content: Vec<String>) -> Example {
-        Example {
-            name,
-            content,
-        }
-    }
-}
-
-pub async fn read_examples<Reader: Read>(mut reader_factory: Pin<Box<dyn Stream<Item=Result<ReaderContext<Reader>, String>>>>, parser_settings: ParserSettings) -> Result<Vec<Example>, String> {
+/// Transform a stream of file readers into a stream of examples
+/// Note: this will exhaust all readers before starting the stream of examples
+pub async fn read_examples<Reader: Read>(mut reader_factory: Pin<Box<dyn Stream<Item=Result<ReaderContext<Reader>, String>>>>, parser_settings: ParserSettings)
+    -> Result<Pin<Box<dyn Stream<Item=Example>>>, String> {
     let mut chunk_cache: HashMap<String, Vec<Chunk>> = Default::default();
 
     while let Some(reader_context) = reader_factory.next().await {
@@ -35,7 +26,9 @@ pub async fn read_examples<Reader: Read>(mut reader_factory: Pin<Box<dyn Stream<
         chunk_cache = exhaust_reader(chunk_reader, chunk_cache).await?;
     }
 
-    finalize_examples(chunk_cache)
+    let examples = finalize_examples(chunk_cache)?;
+
+    Ok(Box::pin(futures::stream::iter(examples.into_iter())))
 }
 
 fn finalize_examples(chunk_cache: HashMap<String, Vec<Chunk>>) -> Result<Vec<Example>, String> {
@@ -60,7 +53,22 @@ fn finalize_examples(chunk_cache: HashMap<String, Vec<Chunk>>) -> Result<Vec<Exa
             return Ordering::Equal;
         });
 
+        let mut example_title = None;
+        let mut example_language = None;
+
         let content = chunks.into_iter().flat_map(|v| {
+            if let Some(title) = v.title {
+                if example_title.is_none() {
+                    example_title = Some(title)
+                }
+            }
+
+            if let Some(language) = v.language {
+                if example_language.is_none() {
+                    example_language = Some(language)
+                }
+            }
+
             let content = v.content.into_iter().map(|l| l.value).collect();
 
             match v.indentation {
@@ -69,7 +77,9 @@ fn finalize_examples(chunk_cache: HashMap<String, Vec<Chunk>>) -> Result<Vec<Exa
             }
         }).collect();
 
-        examples.push(Example::new(v.0.clone(), content))
+        let example = Example::new(v.0.clone(), content, example_title, example_language);
+
+        examples.push(example)
     }
 
     Ok(examples)

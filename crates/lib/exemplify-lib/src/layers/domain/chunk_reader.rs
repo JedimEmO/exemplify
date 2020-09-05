@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 use futures::stream::Stream;
 use futures::task::{Context, Poll};
 
-use crate::layers::domain::chunk::{Chunk, ChunkLine};
+use crate::layers::domain::entities::chunk::{Chunk, ChunkLine};
 use crate::layers::domain::parser_settings::ParserSettings;
 use crate::layers::domain::reader_factory::ReaderContext;
 
@@ -111,6 +111,8 @@ impl<Reader: Read> ChunkReader<Reader> {
                         indentation: params.indentation,
                         source_name: self.source_name.clone(),
                         start_line: line_number,
+                        title: None,
+                        language: None
                     });
                     return Ok(None);
                 }
