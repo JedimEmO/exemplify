@@ -6,10 +6,10 @@ use futures::{Stream, StreamExt};
 use exemplify_lib::layers::domain::entities::Printable;
 
 use crate::layers::application::cli_params::ExemplifyCliParams;
-use futures::executor::block_on_stream;
+
 
 pub async fn print_files<T: Printable + 'static>(input: Pin<Box<dyn Stream<Item=T>>>, params: ExemplifyCliParams) {
-    let result = input.map(move |example| -> Result<(), String> {
+    let _result = input.map(move |example| -> Result<(), String> {
         let content = example.print();
 
         if let Some(out_dir) = &params.output_folder {

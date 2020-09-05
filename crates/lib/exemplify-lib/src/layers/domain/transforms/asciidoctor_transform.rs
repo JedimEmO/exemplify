@@ -21,7 +21,7 @@ impl Printable for AsciidoctorExample {
     }
 }
 
-pub fn map_to_asciidoctor(mut input: Pin<Box<dyn Stream<Item=Example>>>, settings: AsciidoctorSettings) -> Pin<Box<dyn Stream<Item=AsciidoctorExample>>> {
+pub fn map_to_asciidoctor(input: Pin<Box<dyn Stream<Item=Example>>>, settings: AsciidoctorSettings) -> Pin<Box<dyn Stream<Item=AsciidoctorExample>>> {
     Box::pin(input.map(move |example| {
         let header = create_asciidoc_source_header(&settings, &example);
         let footer = create_asciidoc_source_footer(&settings);
@@ -41,7 +41,7 @@ pub fn map_to_asciidoctor(mut input: Pin<Box<dyn Stream<Item=Example>>>, setting
     }))
 }
 
-fn create_asciidoc_source_header(settings: &AsciidoctorSettings, example: &Example) -> Vec<String> {
+fn create_asciidoc_source_header(_settings: &AsciidoctorSettings, example: &Example) -> Vec<String> {
     let title = match &example.title {
         Some(title) => vec![format!(".{}", title)],
         _ => vec![]
@@ -57,7 +57,7 @@ fn create_asciidoc_source_header(settings: &AsciidoctorSettings, example: &Examp
     ].into_iter().flatten().collect()
 }
 
-fn create_asciidoc_source_footer(settings: &AsciidoctorSettings) -> Vec<String> {
+fn create_asciidoc_source_footer(_settings: &AsciidoctorSettings) -> Vec<String> {
     vec![
         "----".into()
     ]

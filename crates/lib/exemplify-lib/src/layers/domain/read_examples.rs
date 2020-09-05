@@ -10,7 +10,7 @@ use crate::layers::domain::chunk_reader::ChunkReader;
 use crate::layers::domain::parser_settings::ParserSettings;
 use crate::layers::domain::reader_factory::ReaderContext;
 use crate::layers::domain::entities::example::Example;
-use crate::layers::domain::entities::Printable;
+
 
 /// Transform a stream of file readers into a stream of examples
 /// Note: this will exhaust all readers before starting the stream of examples
