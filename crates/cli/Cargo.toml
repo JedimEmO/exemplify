@@ -14,6 +14,6 @@ readme = "../../README.md"
 [dependencies]
 clap = { version = "3.0.0-beta.1", features = ["derive"] }
 # Remove path from dependency before publishing
-exemplify-lib = { version = "0.1.3", path = "../lib/exemplify-lib" }
+exemplify-lib = { version = "0.1.3"}
 futures = "0.3.5"
 tokio = { version = "0.2.22", features = ["macros"] }
