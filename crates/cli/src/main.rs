@@ -1,18 +1,25 @@
 #[macro_use]
 extern crate clap;
 
-use std::path::Path;
+
+
 use std::process::exit;
 
 use clap::Clap;
 
+
+
 use exemplify_lib::layers::domain::parser_settings::ParserSettings;
-use exemplify_lib::layers::domain::read_examples::read_examples;
+use exemplify_lib::layers::domain::collect_examples::collect_examples;
 use exemplify_lib::layers::domain::reader_stream::reader_stream;
+use exemplify_lib::layers::domain::transforms::asciidoctor_transform::{AsciidoctorSettings, map_to_asciidoctor};
 use exemplify_lib::layers::implementations::file_reader_factory::FileReaderFactory;
 use exemplify_lib::layers::implementations::fs_discovery::discover_fs_files;
 
-use crate::layers::application::cli_params::ExemplifyCliParams;
+use crate::layers::application::cli_params::{ExemplifyCliParams, OutputFormat};
+use crate::layers::application::print_files::print_files;
+use futures::StreamExt;
+
 
 mod layers;
 
@@ -36,20 +43,22 @@ async fn run(params: ExemplifyCliParams) -> Result<(), String> {
         Box::new(FileReaderFactory {}),
         files);
 
-    let parser_settings = ParserSettings { start_token: params.start_token, end_token: params.end_token };
+    let parser_settings = ParserSettings { start_token: params.start_token.clone(), end_token: params.end_token.clone() };
 
-    let examples = read_examples(reader_factory, parser_settings.clone()).await?;
+    let examples = collect_examples(reader_factory, parser_settings.clone()).await?;
 
-    for example in examples {
-        let content = example.lines().join("\n");
+    match &params.output_format {
+        Some(format) => {
+            match format {
+                OutputFormat::Asciidoctor => {
+                    let asciidoc = map_to_asciidoctor(examples, AsciidoctorSettings { callout_token: params.callout_token.clone() });
 
-        if let Some(out_dir) = &params.output_folder {
-            let output_path = format!("{}/{}", out_dir, example.name);
-            let output_path = Path::new(&output_path);
-            std::fs::create_dir_all(output_path.parent().ok_or("".to_string())?).map_err(|e| e.to_string())?;
-            std::fs::write(output_path, content).map_err(|e| e.to_string())?;
-        } else {
-            println!("Example {}:\n{}\n", example.name, content);
+                    print_files(Box::pin(asciidoc.map(|e| e.unwrap())), params.clone()).await;
+                }
+            }
+        }
+        None => {
+            print_files(examples, params.clone()).await;
         }
     }
 

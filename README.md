@@ -13,9 +13,9 @@ You can combine multiple blocks, they will appear ordered by the optional part p
 
 ```
 // This chunk will be indented by 4 spaces relative to the other chunks in this example
-//##exemplify-start##{name="name of the example" part=1 indentation=4}
+//##exemplify-start##{name="name of the example" part=1 indentation=4 title="Some title" language="typescript"}
 export class Foobar {
-    doSomething() {}
+    doSomething() {} // ##exemplify-callout##{value="Some callout"}
 }
 //##exemplify-end##
 
@@ -29,14 +29,19 @@ new Foobar();
 ```
 
 ```
-exemplify -s /path/to/example/code/root -o /path/to/output/folder -e "ts"
+exemplify -s /path/to/example/code/root -o /path/to/output/folder -e "ts" --output-format=asciidoc
 ```
 
-This should create the file *name of the example* in your output folder, with the following content:
+This should create the file *name of the example.adoc* in your output folder, with the following content:
 
 ```
+.Some title
+[source,typescript]
+----
     export class Foobar {
-        doSomething() {}
+        doSomething() {} <1> Some callout
     }
 new Foobar();
+----
+<1> Some callout
 ```
