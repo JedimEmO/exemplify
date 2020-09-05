@@ -14,8 +14,8 @@ use crate::layers::domain::entities::example::Example;
 
 /// Transform a stream of file readers into a stream of examples
 /// Note: this will exhaust all readers before starting the stream of examples
-pub async fn read_examples<Reader: Read>(mut reader_factory: Pin<Box<dyn Stream<Item=Result<ReaderContext<Reader>, String>>>>, parser_settings: ParserSettings)
-    -> Result<Pin<Box<dyn Stream<Item=Example>>>, String> {
+pub async fn collect_examples<Reader: Read>(mut reader_factory: Pin<Box<dyn Stream<Item=Result<ReaderContext<Reader>, String>>>>, parser_settings: ParserSettings)
+                                            -> Result<Pin<Box<dyn Stream<Item=Example>>>, String> {
     let mut chunk_cache: HashMap<String, Vec<Chunk>> = Default::default();
 
     while let Some(reader_context) = reader_factory.next().await {
@@ -216,7 +216,7 @@ mod test {
             ].into_iter()));
 
         let file_reader_factory = reader_stream(Box::new(StringReaderFactory {}), file_name_stream);
-        let _result = read_examples(file_reader_factory, parser_settings.clone()).await.unwrap();
+        let _result = collect_examples(file_reader_factory, parser_settings.clone()).await.unwrap();
 
         let file_name_stream = Box::pin(futures::stream::iter(
             vec![
@@ -224,7 +224,7 @@ mod test {
             ].into_iter()));
 
         let file_reader_factory = reader_stream(Box::new(StringReaderFactory {}), file_name_stream);
-        let result = read_examples(file_reader_factory, parser_settings.clone()).await;
+        let result = collect_examples(file_reader_factory, parser_settings.clone()).await;
 
         assert_eq!(result.is_err(), true);
 
@@ -234,7 +234,7 @@ mod test {
             ].into_iter()));
 
         let file_reader_factory = reader_stream(Box::new(StringReaderFactory {}), file_name_stream);
-        let result = read_examples(file_reader_factory, parser_settings.clone()).await;
+        let result = collect_examples(file_reader_factory, parser_settings.clone()).await;
 
         assert_eq!(result.is_err(), true);
     }

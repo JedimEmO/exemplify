@@ -111,8 +111,8 @@ impl<Reader: Read> ChunkReader<Reader> {
                         indentation: params.indentation,
                         source_name: self.source_name.clone(),
                         start_line: line_number,
-                        title: None,
-                        language: None
+                        title: params.title,
+                        language: params.language
                     });
                     return Ok(None);
                 }
@@ -134,6 +134,8 @@ impl<Reader: Read> ChunkReader<Reader> {
         let mut name: String = "".into();
         let mut part = None;
         let mut indentation = None;
+        let mut title = None;
+        let mut language = None;
 
         for val in VAL_RE.captures_iter(line) {
             let param_name_name = val.get(2);
@@ -145,8 +147,12 @@ impl<Reader: Read> ChunkReader<Reader> {
 
             if let Some(pname) = param_name_name {
                 if let Some(n) = param_name_val {
+                    let val = n.as_str().to_string().clone();
+
                     match pname.as_str().to_string().trim() {
-                        "name" => name = n.as_str().to_string().clone(),
+                        "name" => name = val,
+                        "title" => title = Some(val),
+                        "language" => language = Some(val),
                         _ => {}
                     }
                 }
@@ -172,6 +178,8 @@ impl<Reader: Read> ChunkReader<Reader> {
             part,
             name,
             indentation,
+            title,
+            language
         })
     }
 
@@ -184,4 +192,6 @@ struct ChunkParams {
     name: String,
     part: Option<u32>,
     indentation: Option<u32>,
+    title: Option<String>,
+    language: Option<String>,
 }
