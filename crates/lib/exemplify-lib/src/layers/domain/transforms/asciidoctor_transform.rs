@@ -75,7 +75,7 @@ struct Callout {
     number: usize
 }
 
-fn transform_callouts(mut input: Vec<String>, callout_token: &String) -> Result<(Vec<String>, Vec<Callout>), String> {
+fn transform_callouts(input: Vec<String>, callout_token: &String) -> Result<(Vec<String>, Vec<Callout>), String> {
     let mut callout_number = 1;
     let mut output = Vec::new();
     let mut callouts= Vec::new();
