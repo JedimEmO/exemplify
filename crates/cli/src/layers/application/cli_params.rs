@@ -17,7 +17,10 @@ pub struct ExemplifyCliParams {
     #[clap(long, default_value="##exemplify-end##")]
     pub end_token: String,
 
-    #[clap(long)]
+    #[clap(long, default_value="##exemplify-callout##")]
+    pub callout_token: String,
+
+    #[clap(long,about="Legal values: asciidoc")]
     pub output_format: Option<OutputFormat>,
 
     #[clap(short,about="Folder to generate example files into. If this parameter is not provided, examples are printed to stdout")]

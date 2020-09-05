@@ -51,7 +51,7 @@ async fn run(params: ExemplifyCliParams) -> Result<(), String> {
         Some(format) => {
             match format {
                 OutputFormat::Asciidoctor => {
-                    let asciidoc = map_to_asciidoctor(examples, AsciidoctorSettings { callout_token: "##callout##".to_string() });
+                    let asciidoc = map_to_asciidoctor(examples, AsciidoctorSettings { callout_token: params.callout_token.clone() });
 
                     print_files(Box::pin(asciidoc.map(|e| e.unwrap())), params.clone()).await;
                 }
