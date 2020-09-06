@@ -44,11 +44,11 @@ impl<Reader: Read> Stream for ChunkReader<Reader> {
             }
         }
 
-        if self.current_chunk.is_some() {
-            let last_line = self.parser_settings.end_token.clone();
-
-            if let Some(result) = self.process_line(&last_line, self.current_line)? {
-                completed_chunks.push(result);
+        if read_count == 0 {
+            if self.current_chunk.is_some() {
+                if let Some(chunk) = self.finalize_chunk()? {
+                    completed_chunks.push(chunk);
+                }
             }
         }
 
@@ -112,7 +112,7 @@ impl<Reader: Read> ChunkReader<Reader> {
                         source_name: self.source_name.clone(),
                         start_line: line_number,
                         title: params.title,
-                        language: params.language
+                        language: params.language,
                     });
                     return Ok(None);
                 }
@@ -179,7 +179,7 @@ impl<Reader: Read> ChunkReader<Reader> {
             name,
             indentation,
             title,
-            language
+            language,
         })
     }
 
