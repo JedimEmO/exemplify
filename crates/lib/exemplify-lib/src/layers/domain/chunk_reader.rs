@@ -128,7 +128,7 @@ impl<Reader: Read> ChunkReader<Reader> {
 
     fn extract_chunk_params(line: &String, source_name: &String, line_number: usize) -> Result<ChunkParams, String> {
         lazy_static::lazy_static! {
-            static ref VAL_RE: regex::Regex = regex::Regex::new("(([a-zA-Z]+)\\s?=\\s?\"([a-zA-Z\\s0-9\\-/]+)\")|(([a-zA-Z]+)\\s?=\\s?([0-9]+))").unwrap();
+            static ref VAL_RE: regex::Regex = regex::Regex::new("(([a-zA-Z]+)\\s?=\\s?\"([a-zA-Z\\s0-9\\-\\(\\)_\\+\\.,'`@\\[\\]/]+)\")|(([a-zA-Z]+)\\s?=\\s?([0-9]+))").unwrap();
         }
 
         let mut name: String = "".into();
