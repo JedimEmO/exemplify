@@ -43,6 +43,7 @@ pub fn map_to_asciidoctor(input: Pin<Box<dyn Stream<Item=Example>>>, settings: A
                 ].into_iter().flatten().collect(),
                 title: example.title,
                 language: example.language,
+                id: example.id
             }
         })
     }))
@@ -54,8 +55,14 @@ fn create_asciidoc_source_header(_settings: &AsciidoctorSettings, example: &Exam
         _ => vec![]
     };
 
+    let id = match &example.id {
+        Some(id) => vec![format!("[#{}]", id)],
+        _  => vec![]
+    };
+
     vec![
         title,
+        id,
         vec![format!("[source{}]", match &example.language {
             Some(language) => format!(",{}", language),
             _ => "".into()

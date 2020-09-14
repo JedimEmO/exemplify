@@ -55,6 +55,7 @@ fn finalize_examples(chunk_cache: HashMap<String, Vec<Chunk>>) -> Result<Vec<Exa
 
         let mut example_title = None;
         let mut example_language = None;
+        let mut example_id = None;
 
         let content = chunks.into_iter().flat_map(|v| {
             if let Some(title) = v.title {
@@ -69,6 +70,13 @@ fn finalize_examples(chunk_cache: HashMap<String, Vec<Chunk>>) -> Result<Vec<Exa
                 }
             }
 
+            if let Some(id) = v.id {
+                if example_id.is_none() {
+                    example_id = Some(id)
+                }
+            }
+
+
             let content = v.content.into_iter().map(|l| l.value).collect();
 
             match v.indentation {
@@ -77,7 +85,7 @@ fn finalize_examples(chunk_cache: HashMap<String, Vec<Chunk>>) -> Result<Vec<Exa
             }
         }).collect();
 
-        let example = Example::new(v.0.clone(), content, example_title, example_language);
+        let example = Example::new(v.0.clone(), content, example_title, example_language, example_id);
 
         examples.push(example)
     }

@@ -5,15 +5,17 @@ pub struct Example {
     pub content: Vec<String>,
     pub title: Option<String>,
     pub language: Option<String>,
+    pub id: Option<String>
 }
 
 impl Example {
-    pub fn new(name: String, content: Vec<String>, title: Option<String>, language: Option<String>) -> Example {
+    pub fn new(name: String, content: Vec<String>, title: Option<String>, language: Option<String>, id: Option<String>) -> Example {
         Example {
             name,
             content,
             title,
             language,
+            id
         }
     }
 }
