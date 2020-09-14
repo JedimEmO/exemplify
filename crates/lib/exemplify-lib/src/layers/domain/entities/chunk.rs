@@ -8,7 +8,8 @@ pub struct Chunk {
     pub source_name: String,
     pub start_line: usize,
     pub title: Option<String>,
-    pub language: Option<String>
+    pub language: Option<String>,
+    pub id: Option<String>
 }
 
 #[derive(Default, Clone)]
